@@ -7,33 +7,21 @@
     보호소에서는 몇 시에 입양이 가장 활발하게 일어나는지 알아보려 합니다.
     0시부터 23시까지, 각 시간대별로 입양이 몇 건이나 발생했는지 조회하는 SQL문을 작성해주세요.
     이때 결과는 시간대 순으로 정렬해야 합니다.
-    
-SELECT 
-    TO_NUMBER(TO_CHAR(a.datetime,'FMHH24')) HOUR,
-    count(*) COUNT
-FROM ANIMAL_OUTS a
-GROUP BY TO_NUMBER(TO_CHAR(a.datetime,'FMHH24'))
-ORDER BY HOUR asc;
-*/
-WITH TB_TIME AS (
-    SELECT LEVEL - 1 AS hour
-    FROM dual
-    CONNECT BY LEVEL <= 24
-)
 
-SELECT 
-    t.hour,
-    CASE
-        WHEN aa.count IS NOT NULL THEN aa.count
-        ELSE 0
-    END count
-FROM TB_TIME t
-LEFT JOIN (
-    SELECT 
-        TO_NUMBER(TO_CHAR(a.datetime,'FMHH24')) HOUR,
-        count(*) COUNT
-    FROM ANIMAL_OUTS a
-    GROUP BY TO_NUMBER(TO_CHAR(a.datetime,'FMHH24'))
-    ORDER BY HOUR asc
-) aa on t.hour = aa.hour
-ORDER BY t.hour;
+*/
+WITH hours (hour) AS (
+  SELECT 0 FROM dual
+  UNION ALL
+  SELECT hour + 1
+  FROM hours
+  WHERE hour < 23
+)
+SELECT
+  h.hour,
+  COUNT(a.animal_id) AS count
+FROM hours h
+LEFT JOIN animal_outs a
+  ON h.hour = TO_NUMBER(TO_CHAR(a.datetime, 'HH24'))
+GROUP BY h.hour
+ORDER BY h.hour;
+
