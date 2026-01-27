@@ -7,28 +7,25 @@
     이때 반납 날짜가 2022년 10월 16일인 경우에도 '대여중'으로 표시해주시고
     결과는 자동차 ID를 기준으로 내림차순 정렬해주세요.
     
-    즉, 10월 16일 기준으로 빌려줄 수 있는지 없는지를 판단하는 문제
+    지금 문제가 2022-10-16일이 start_date 혹은 between에 들어가는게 있는 car_id를 찾음
     
-    1. 각 CAR_ID에 대해
-    2. 2022-10-16을 포함하는 대여 이력이 하나라도 있는지 확인
-    3. 있으면 '대여중', 없으면 '대여 가능'
+    차량을 1대씩만 뽑아놓고(DISTINCT)
+    그 차가 2022-10-16에 빌려져 있었던 기록이 하나라도 있으면(EXISTS)
+    ‘대여중’, 아니면 ‘대여 가능’으로 표시한다.
 */
 
 SELECT
-    car_id,
+    c.car_id,
     CASE
-        WHEN MAX(
-            CASE
-                WHEN DATE '2022-10-16'
-                     BETWEEN start_date AND end_date
-                THEN 1
-                ELSE 0
-            END
-        ) = 1
+        WHEN EXISTS (
+            SELECT 1
+            FROM CAR_RENTAL_COMPANY_RENTAL_HISTORY h
+            WHERE h.car_id = c.car_id
+              AND DATE '2022-10-16' BETWEEN h.start_date AND h.end_date
+        )
         THEN '대여중'
         ELSE '대여 가능'
     END AS availability
-FROM CAR_RENTAL_COMPANY_RENTAL_HISTORY
-GROUP BY car_id
-ORDER BY car_id DESC;
+FROM (SELECT DISTINCT car_id FROM CAR_RENTAL_COMPANY_RENTAL_HISTORY) c
+ORDER BY c.car_id DESC;
 
