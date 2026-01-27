@@ -17,3 +17,11 @@ WHERE c.board_id = (
     )
 )
 ORDER BY c.file_id DESC;
+-- 가독성 개선 ver
+SELECT 
+  '/home/grep/src/' || c.board_id || '/' || c.file_id || c.file_name || c.file_ext AS file_path
+FROM USED_GOODS_FILE c
+JOIN USED_GOODS_BOARD a
+  ON a.board_id = c.board_id
+WHERE a.views = (SELECT MAX(views) FROM USED_GOODS_BOARD)
+ORDER BY c.file_id DESC;
